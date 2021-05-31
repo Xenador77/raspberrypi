@@ -5,10 +5,11 @@ set -euxo pipefail
 #
 # Warning! This will download my public keys to your user. Change this before
 # running it!
+# I did thanks for the heads up^^
 #
-# Author: Stephen Wood (www.heystephenwood.com)
+# Author: Stephen Wood (www.heystephenwood.com) aka bash scripting master/grand poobah of pi
 
-# Our new user -- me
+# Our new user -- not you
 export NEW_USER="hermes"
 
 # My github user. Will pull these public keys
