@@ -9,10 +9,10 @@ set -euxo pipefail
 # Author: Stephen Wood (www.heystephenwood.com)
 
 # Our new user -- me
-export NEW_USER="smw"
+export NEW_USER="hermes"
 
 # My github user. Will pull these public keys
-export GITHUB_USER="stephen-mw"
+export GITHUB_USER="Xenador77"
 
 function setup_ramfs(){
     # Improve the life of the SD by limiting the /logs and /tmp directory to
@@ -47,7 +47,7 @@ LOCALE
     localectl status
 
     # Set local time
-    timedatectl set-timezone 'America/Los_Angeles'
+    timedatectl set-timezone 'America/New_York'
 
     # Set the keyboard to US
     cat > /etc/default/keyboard<<KEYBOARD
@@ -61,8 +61,8 @@ KEYBOARD
 
 function install_packages(){
 
-    # Enable a custom local mirror
-    cat > /etc/apt/sources.list.d/raspi.list<<LIST
+     Enable a custom local mirror
+     cat > /etc/apt/sources.list.d/raspi.list<<LIST
 deb https://cato.u1f602.com/mirror/archive.raspberrypi.org/debian/ buster main
 # Uncomment line below then 'apt-get update' to enable 'apt-get source'
 #deb-src https://cato.u1f602.com/mirror/archive.ubuntu.com/debian/ buster main
@@ -75,13 +75,13 @@ deb https://cato.u1f602.com/mirror/archive.raspbian.org/raspbian/ buster main co
 LIST
 
     apt update -y
-    apt upgrade -y
+    apt dist-upgrade -y
 
     apt install -y    \
         curl          \
         git           \
         i2c-tools     \
-        ntp           \
+      #  ntp          \
         python-pip    \
         python3       \
         python3-pip   \
@@ -90,64 +90,68 @@ LIST
         rsyslog       \
         screen        \
         ssh-import-id \
-        vim           \
-        wget
-
+        #vim          \
+        wget          \
+        nmap          \
+        terminator    \
+        zsh           \
+        barrier       
+        
     yes | rpi-update || true
 }
 
-function setup_unattended_upgrades() {
+#function setup_unattended_upgrades() {
     # Unattended upgrades will keep the pi up-to-date, and this function also
     # will make the pi reboot once a month.
-    apt install -y \
-        apt-listchanges        \
-        bsd-mailx              \
-        unattended-upgrades
+ #   apt install -y \
+  #      apt-listchanges        \
+   #     bsd-mailx              \
+    #    unattended-upgrades
 
     # After installing updates, send an email and reboot if necessary
-    cat >> /etc/apt/apt.conf.d/50unattended-upgrades<<UPGRADES
-Unattended-Upgrade::Mail "contact.stephen.wood@gmail.com";
-Unattended-Upgrade::Automatic-Reboot "true";
-Unattended-Upgrade::Automatic-Reboot-Time "03:00";
-UPGRADES
+    #cat >> /etc/apt/apt.conf.d/50unattended-upgrades<<UPGRADES
+#Unattended-Upgrade::Mail "contact.stephen.wood@gmail.com";
+#Unattended-Upgrade::Automatic-Reboot "true";
+#Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+#UPGRADES
 
     # Enable all packages and periodically clean up
-    cat > /etc/apt/apt.conf.d/20auto-upgrades<<UPGRADES
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Download-Upgradeable-Packages "1";
-APT::Periodic::Unattended-Upgrade "1";
-APT::Periodic::Verbose "1";
-APT::Periodic::AutocleanInterval "7";
-UPGRADES
+ #   cat > /etc/apt/apt.conf.d/20auto-upgrades<<UPGRADES
+#APT::Periodic::Update-Package-Lists "1";
+#APT::Periodic::Download-Upgradeable-Packages "1";
+#APT::Periodic::Unattended-Upgrade "1";
+#APT::Periodic::Verbose "1";
+#APT::Periodic::AutocleanInterval "7";
+#UPGRADES
 
     # Dry run to test that everything is working
-    unattended-upgrade -d -v --dry-run
+ #   unattended-upgrade -d -v --dry-run
 
     # Enable the service
-    dpkg-reconfigure --priority=low unattended-upgrades -fnoninteractive
-}
-
-function setup_vim(){
+  #  dpkg-reconfigure --priority=low unattended-upgrades -fnoninteractive
+#}
+#I'm a noob who likes nano
+#function setup_vim(){
     # Set VIM as the default editor
-    update-alternatives --set editor /usr/bin/vim.basic
+    #update-alternatives --set editor /usr/bin/vim.basic
 
     # Vim settings (colors, syntax highlighting, tab space, etc).
-    curl 'https://raw.githubusercontent.com/stephen-mw/raspberrypi/master/configuration/vimrc' \
-        > /etc/vim/vimrc.local
-}
+    #curl 'https://raw.githubusercontent.com/stephen-mw/raspberrypi/master/configuration/vimrc' \
+     #   > /etc/vim/vimrc.local
+#}
 
 function setup_user() {
     if ! id -u ${NEW_USER}; then
         useradd -m -s /bin/bash -G sudo ${NEW_USER}
     fi
 
-    if ! [[ -d ~smw/.ssh ]]; then
-        mkdir ~smw/.ssh
+    if ! [[ -d ~hermes/.ssh ]]; then
+        mkdir ~hermes/.ssh
     fi
 
-    ssh-import-id gh:stephen-mw -o ~smw/.ssh/authorized_keys
-    chmod 600 ~smw/.ssh/authorized_keys
-    chown -R smw:smw ~smw
+    ssh-import-id gh:Xenador77 -o ~hermes/.ssh/authorized_keys
+    chmod 600 ~hermes/.ssh/authorized_keys
+    chown -R hermes:hermes ~hermes
 
     # Banish the Pi user
     if id -u pi; then
@@ -181,8 +185,8 @@ function setup_ssh(){
 
     # Turn off password authentication and only allow ssh
     cat >> /etc/ssh/sshd_config<<SSH
-AllowUsers smw
-PasswordAuthentication no
+AllowUsers hermes
+PasswordAuthentication yes
 SSH
 
     systemctl enable ssh
@@ -197,7 +201,7 @@ function setup_system(){
     # Put your custom functions here
     cat >/etc/profile.d/custom.sh<<CUSTOM
 # Better ls command
-alias ll="ls -ltr"
+alias la="ls -a"
 
 # make less case insensitive for searches and display verbose prompt by default
 export LESS="-irMS"
@@ -219,82 +223,14 @@ export PROMPT_COMMAND='history -a'
 shopt -s cmdhist
 
 # ignore these short commands in the history
+# why did I not think of this forever ago???
 export HISTIGNORE="&:cd:fg:bg:pwd:pd:po:pushd:popd:dirs:ls:jobs:top"
 CUSTOM
 }
 
-function setup_watchdog() {
-    # Restart the Pi if it becomes unavailable for 10 seconds
-    echo 'RuntimeWatchdogSec=10s' >> /etc/systemd/system.conf
+#deleted all python stuff
+#still learning python don't want to utilize that portion of the script yet 
 
-    systemctl daemon-reexec
-}
-
-function setup_python3() {
-    local VERSION=3.9.0
-
-    apt install -y       \
-        build-essential  \
-        libbz2-dev       \
-        libffi-dev       \
-        liblzma-dev      \
-        libncurses5-dev  \
-        libncursesw5-dev \
-        libreadline-dev  \
-        libsqlite3-dev   \
-        libssl-dev       \
-        llvm             \
-        python-openssl   \
-        python-pip       \
-        tk-dev           \
-        xz-utils         \
-        zlib1g-dev
-
-    local OLD_PIP="$(which pip)"
-    local NEW_PIP="${OLD_PIP}2.7"
-
-    mv "${OLD_PIP}" "${NEW_PIP}"
-    ln -s "${NEW_PIP}" "${OLD_PIP}"
-
-    export PYENV_ROOT=/etc/pyenv
-    export PATH="$PYENV_ROOT/bin:$PATH"
-
-    if [[ -d "${PYENV_ROOT}" ]]; then
-        rm -rfv -- "${PYENV_ROOT}"
-    fi
-
-    git clone https://github.com/pyenv/pyenv.git ${PYENV_ROOT}
-
-    # Can't fit in /tmp because it's a ramfs
-    local TMPDIR=${PYENV_ROOT}/tmp
-    mkdir ${TMPDIR}
-
-    # The latest version as of now
-    echo "Setting system python to ${VERSION}. This may take several minutes..."
-    CFLAGS="-O2" TMPDIR=${TMPDIR} pyenv install ${VERSION}
-
-    rm -rf -- "${TMPDIR}"
-
-    # Set the global version
-    pyenv global ${VERSION}
-
-    # Latest
-    update-alternatives --install "$(which python)" python /etc/pyenv/versions/${VERSION}/bin/python 1
-    update-alternatives --install "$(which pip)" pip /etc/pyenv/versions/${VERSION}/bin/pip 1
-
-    # 2.7
-    update-alternatives --install "$(which python)" python /usr/bin/python2.7 2
-    update-alternatives --install "$(which pip)" pip /usr/bin/pip2.7 2
-
-    # Lastly, set the system python to our new version
-    # For now, skip this part.
-    return
-
-    update-alternatives --set python /etc/pyenv/versions/${VERSION}/bin/python
-    update-alternatives --set pip /etc/pyenv/versions/${VERSION}/bin/pip
-
-    pip install -U pip
-}
 
 function final_echo() {
     cat <<'FINAL'
@@ -325,14 +261,14 @@ FINAL
 # Temporarily disabled. Not sure I like this feature.
 #setup_ramfs
 
-setup_watchdog
+# setup_watchdog
 setup_locale
 install_packages
 setup_system
-setup_unattended_upgrades
+# setup_unattended_upgrades
 setup_user
 setup_ssh
-setup_vim
+# setup_vim
 # setup_python3
 final_echo
 
